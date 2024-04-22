@@ -1,3 +1,16 @@
 #!/bin/bash
 
+# patch PATH on macOS to force JDK 1.8
+unameOut="$(uname -s)"
+case "${unameOut}" in
+    Darwin*)    machine="Mac";;
+    *)          machine="UNKNOWN"
+esac
+
+if [ $machine = "Mac" ]; then
+  export JAVA_HOME=$(/usr/libexec/java_home -v 1.8)/bin
+fi
+
+
+
 sbt "runMain tip.Tip $*"
