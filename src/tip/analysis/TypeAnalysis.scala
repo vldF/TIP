@@ -98,36 +98,44 @@ class TypeAnalysis(program: AProgram)(implicit declData: DeclarationData) extend
     * @param node the node for which it generates the constraints
     * @param arg unused for this visitor
     */
-  def visit(node: AstNode, arg: Unit): Unit = {
+  def visit(node: AstNode, arg: Unit = ()): Unit = {
     log.verb(s"Visiting ${node.getClass.getSimpleName} at ${node.loc}")
     node match {
-      case program: AProgram => ??? // <--- Complete here
-      case _: ANumber => ??? // <--- Complete here
-      case _: AInput => ??? // <--- Complete here
-      case is: AIfStmt => ??? // <--- Complete here
-      case os: AOutputStmt => ??? // <--- Complete here
-      case ws: AWhileStmt => ??? // <--- Complete here
+      case _: ANumber => unify(node, IntType())
+      case _: AInput => unify(node, IntType())
+      case is: AIfStmt => unify(is.guard, IntType())
+      case os: AOutputStmt => unify(os.exp, IntType())
+      case ws: AWhileStmt => unify(ws.guard, IntType())
       case as: AAssignStmt =>
         as.left match {
-          case id: AIdentifier => ??? // <--- Complete here
-          case dw: ADerefWrite => ??? // <--- Complete here
-          case dfw: ADirectFieldWrite => ??? // <--- Complete here
-          case ifw: AIndirectFieldWrite => ??? // <--- Complete here
+          case id: AIdentifier => unify(id, as.right)
+          case dw: ADerefWrite => unify(dw.exp, PointerType(as.right))
+          case dfw: ADirectFieldWrite => unify(dfw.id, buildRecordByField(dfw.field, as.right))
+          case ifw: AIndirectFieldWrite => unify(ifw.exp, PointerType(buildRecordByField(ifw.field, as.right)))
         }
       case bin: ABinaryOp =>
         bin.operator match {
-          case Eqq => ??? // <--- Complete here
-          case _ => ??? // <--- Complete here
+          case Eqq =>
+            unify(bin.left, bin.right)
+            unify(node, IntType())
+          case _ =>
+            unify(bin.left, node)
+            unify(bin.right, node)
+            unify(node, IntType())
         }
       case un: AUnaryOp =>
         un.operator match {
-          case DerefOp => ??? // <--- Complete here
+          case DerefOp => unify(un.subexp, PointerType(node))
         }
-      case alloc: AAlloc => ??? // <--- Complete here
-      case ref: AVarRef => ??? // <--- Complete here
-      case _: ANull => ??? // <--- Complete here
-      case fun: AFunDeclaration => ??? // <--- Complete here
-      case call: ACallFuncExpr => ??? // <--- Complete here
+      case alloc: AAlloc =>
+        unify(node, PointerType(alloc.exp))
+      case ref: AVarRef =>
+        unify(node, PointerType(ref.id))
+      case _: ANull => unify(node, FreshVarType())
+      case fun: AFunDeclaration =>
+        val returnExpr = fun.stmts.ret.exp
+        unify(node, FunctionType(fun.params, returnExpr))
+      case call: ACallFuncExpr => unify(FunctionType(call.args, call), call.targetFun)
       case _: AReturnStmt =>
       case rec: ARecord =>
         val fieldmap = rec.fields.foldLeft(Map[String, Term[Type]]()) { (a, b) =>
@@ -143,6 +151,10 @@ class TypeAnalysis(program: AProgram)(implicit declData: DeclarationData) extend
       case _ =>
     }
     visitChildren(node, ())
+  }
+
+  private def buildRecordByField(fieldName: String, expression: AExpr) = {
+    RecordType(allFieldNames.map { field => if (field != fieldName) Type.ast2typevar(expression) else FreshVarType() })
   }
 
   private def unify(t1: Term[Type], t2: Term[Type]): Unit = {
