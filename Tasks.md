@@ -15,3 +15,7 @@ Nothing
 ## Lec #4:
 1. Допишите реализацию live variables analysis (`LiveVarsAnalysis.scala`)
 2. Реализуйте reaching definitions analysis (`src/tip/analysis/ReachingDefinitionsAnalysis.scala`)
+
+## Lec #5:
+1. Допишите реализацию метода widen в `src/tip/analysis/IntervalAnalysis.scala`
+2. Реализуйте придуманный вами анализ размера переменных в `src/tip/analysis/VariableSizeAnalysis.scala`
