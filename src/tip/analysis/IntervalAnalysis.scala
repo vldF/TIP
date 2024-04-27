@@ -19,7 +19,7 @@ trait IntervalAnalysisWidening extends ValueAnalysisMisc with Dependencies[CfgNo
   /**
     * Int values occurring in the program, plus -infinity and +infinity.
     */
-  private val B = cfg.nodes.flatMap { n =>
+  protected val B = cfg.nodes.flatMap { n =>
     n.appearingConstants.map { x =>
       IntNum(x.value): Num
     } + MInf + PInf
@@ -71,6 +71,44 @@ object IntervalAnalysis {
         extends IntraprocValueAnalysisWorklistSolverWithReachability(cfg, IntervalLattice)
         with WorklistFixpointSolverWithReachabilityAndWideningAndNarrowing[CfgNode]
         with IntervalAnalysisWidening {
+
+      val narrowingSteps = 5
+    }
+  }
+}
+
+object VariableSizesAnalysis {
+  object Intraprocedural {
+    implicit class TypeSize(i: Int) {
+      def minSize = -Math.pow(2, i-1).intValue()
+      def maxSize = (Math.pow(2, i-1) - 1).intValue()
+    }
+
+    class WorklistSolverWithWidening(cfg: IntraproceduralProgramCfg)(implicit declData: DeclarationData)
+      extends IntraprocValueAnalysisWorklistSolverWithReachability(cfg, IntervalLattice)
+        with WorklistFixpointSolverWithReachabilityAndWidening[CfgNode]
+        with IntervalAnalysisWidening {
+      override protected val B = Set(
+        1.minSize, 1.maxSize,     // bool
+        8.minSize, 8.maxSize,     // byte
+        16.minSize, 16.maxSize,   // char
+        32.minSize, 32.maxSize,   // int
+        MInf, PInf                // bint, any
+      )
+    }
+
+    class WorklistSolverWithWideningAndNarrowing(cfg: IntraproceduralProgramCfg)(implicit declData: DeclarationData)
+      extends IntraprocValueAnalysisWorklistSolverWithReachability(cfg, IntervalLattice)
+        with WorklistFixpointSolverWithReachabilityAndWideningAndNarrowing[CfgNode]
+        with IntervalAnalysisWidening {
+
+      override protected val B = Set(
+        1.minSize, 1.maxSize,     // bool
+        8.minSize, 8.maxSize,     // byte
+        16.minSize, 16.maxSize,   // char
+        32.minSize, 32.maxSize,   // int
+        MInf, PInf                // bint, any
+      )
 
       val narrowingSteps = 5
     }
