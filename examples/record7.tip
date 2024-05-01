@@ -1,0 +1,9 @@
+main() {
+    var k, y;
+    k = alloc {field: 4};
+    y = &k;
+
+    (**y).field = 2;
+
+    return (**y).field;
+}

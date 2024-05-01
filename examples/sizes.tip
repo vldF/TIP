@@ -1,0 +1,32 @@
+main() {
+    var bool, byte, char, int, bigint;
+    bool = 1;
+    byte = 127;
+    char = 32767;
+    int = 2147483647;
+
+    bigint = 2147483647; // this number is being parsed as an int inside the analyzer infrastructure
+    bigint = bigint + 10;
+
+    if (bool == 1) {
+        bool = 0;
+    }
+
+    if (byte == 127) {
+        byte = -128;
+    }
+
+    if (char == 32767) {
+        char = -32768;
+    }
+
+    if (int == 2147483647) {
+        int = -2147483648;
+    }
+
+//    if (bigint == 2147483647 + 10) {
+//        bigint = 2147483647 * 100;
+//    }
+
+    return 0;
+}
