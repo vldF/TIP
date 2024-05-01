@@ -65,13 +65,13 @@ object FlowSensitiveAnalysis {
       case AnalysisOption.`wlrw` =>
         Some(kind match {
           case Analysis.interval => new IntervalAnalysis.Intraprocedural.WorklistSolverWithWidening(typedCfg.left.get)
-          case Analysis.sizes => new VariableSizesAnalysis.Intraprocedural.WorklistSolverWithWidening(typedCfg.left.get)
+          case Analysis.sizes => new SizesAnalysisWithWidening(typedCfg.left.get)
           case _ => throw new RuntimeException(s"Unsupported solver option `$options` for the analysis $kind")
         })
       case AnalysisOption.`wlrwn` =>
         Some(kind match {
           case Analysis.interval => new IntervalAnalysis.Intraprocedural.WorklistSolverWithWideningAndNarrowing(typedCfg.left.get)
-          case Analysis.sizes => new VariableSizesAnalysis.Intraprocedural.WorklistSolverWithWideningAndNarrowing(typedCfg.left.get)
+          case Analysis.sizes => new SizesAnalysisWithWideningAndNarrowing(typedCfg.left.get)
           case _ => throw new RuntimeException(s"Unsupported solver option `$options` for the analysis $kind")
         })
       case AnalysisOption.`wlrp` =>
